@@ -2,14 +2,18 @@ import React, { useEffect } from 'react';
 import axios from "axios";
 import { useToast } from "@chakra-ui/react";
 import { useHistory } from "react-router-dom";
+import io from "socket.io-client";
+
+const ENDPOINT = "http://127.0.0.1:5000";
+var socket;
 
 const ControlPage = () => {
   const toast = useToast();
   const history = useHistory();
-
+  const user = JSON.parse(localStorage.getItem("userInfo")) || {};
   const getAccess = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem("userInfo")) || {};
+      
       const config = {
         headers: {
           Authorization: user.token ? `Bearer ${user.token}`: null,
@@ -39,7 +43,13 @@ const ControlPage = () => {
   }, [])
 
 
+  useEffect(() => {
+    socket = io(ENDPOINT);
+    socket.emit("setup", user);
+    socket.on("connected", (data) => {console.log(data)});
 
+    // eslint-disable-next-line
+  }, []);
 
   return (
     <div>ControlPage</div>

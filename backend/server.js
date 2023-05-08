@@ -6,8 +6,7 @@ const userRoutes = require("./routes/userRoutes");
 const controlsRoutes = require("./routes/controlsRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const { protectSock } = require("./middleware/authSockMiddleware");
-
-const { serialCom } = require("./controllers/serialPortControlles");
+const { serialCom } = require("./controllers/controlsControllers");
 
 const app = express();
 dotenv.config();
@@ -17,19 +16,6 @@ app.use(express.json()); // to accept json data
 
 app.use("/api/user", userRoutes);
 app.use("/api/controls", controlsRoutes);
-serialCom();
-// app.get("/", (req, res) => {
-//     res.send("API Running.");
-// });
-
-// app.get("/local_storage", (req, res) => {
-//     res.send(localDB);
-// });
-
-// app.get("/local_storage/:id", (req, res) => {
-//     const element = localDB.find((entry) => entry._id == req.params.id);
-//     res.send(element);
-// });
 
 // Error Handling middlewares
 app.use(notFound);
@@ -49,16 +35,39 @@ const io = require("socket.io")(server, {
   },
 });
 
+const plcPort = serialCom();
+plcPort.on("open", function() {
+  console.log("-- Connection opened --");
+
+});
+
 io.on("connection", (socket) => {
   console.log("Connected to socket.io");
   socket.on("setup", (userData) => {
     if (protectSock(userData.token)) {
       socket.join(userData._id);
-      console.log("userData",userData);
+      console.log("userData",userData.name, "is connected");
       socket.emit("connected", {conneced: true});
+
+      socket.on("webCMD", (command) => {
+          console.log("command",command);
+          plcPort.write(command)
+      });
+    
+      var buff = "";
+      plcPort.on("data", function(data) {
+          // console.log("Data buff: " +  buff);
+        buff += data
+        if(buff && (buff.match(/^\\|\|/g) || []).length > 1) {
+          const buffArr = buff.split("|")
+          buff = buffArr[2].length > 0 ? ("|" + buffArr[2]) : ""
+          socket.emit("plcRes", buffArr[1]);
+          console.log("Data received: " +  buffArr[1]);
+        }
+      });
+  
     }
   });
 });
 
-module.exports = { io };
-
+// module.exports = { io };

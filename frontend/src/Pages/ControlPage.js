@@ -10,7 +10,7 @@ import { useHistory } from "react-router-dom";
 import io from "socket.io-client";
 import { Center, Square, Circle } from '@chakra-ui/react'
 
-const ENDPOINT = "http://127.0.0.1:5000";
+const ENDPOINT = "https://787e-141-226-89-246.ngrok-free.app:443";
 var socket;
 
 const ControlPage = () => {
@@ -62,10 +62,10 @@ const ControlPage = () => {
     sock.on("plcRes", (plcRes) => {
       setPlcResponse(plcRes)
       console.log(plcRes)
-      if (plcRes == "green is on") { setGreenOn(true) }
-      if (plcRes == "green is off") { setGreenOn(false) }
-      if (plcRes == "red is on") { setRedOn(true) }
-      if (plcRes == "red is off") { setRedOn(false) }
+      if (plcRes === "green is on") { setGreenOn(true) }
+      if (plcRes === "green is off") { setGreenOn(false) }
+      if (plcRes === "red is on") { setRedOn(true) }
+      if (plcRes === "red is off") { setRedOn(false) }
     })
     // eslint-disable-next-line
   }, []);

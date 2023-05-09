@@ -7,11 +7,15 @@ const controlsRoutes = require("./routes/controlsRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const { protectSock } = require("./middleware/authSockMiddleware");
 const { serialCom } = require("./controllers/controlsControllers");
+const cors = require('cors');
 
 const app = express();
 dotenv.config();
 connectDB();
-
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+});
 app.use(express.json()); // to accept json data
 
 app.use("/api/user", userRoutes);
@@ -30,8 +34,13 @@ const server = app.listen(
 const io = require("socket.io")(server, {
   pingTimeout: 60000,
   cors: {
-    origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
-    // credentials: true,
+    origin: "*",
+    methods: "*",
+    allowedHeaders: "*",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
+    credentials: true
   },
 });
 
@@ -71,3 +80,10 @@ io.on("connection", (socket) => {
 });
 
 // module.exports = { io };
+
+
+// ngrok http 3000 --host-header=rewrite
+
+// or
+
+// ngrok http 3000 --host-header="localhost:3000"
